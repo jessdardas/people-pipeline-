@@ -1,0 +1,5 @@
+# your personal link to the Apps Script project (copy .clasp.json.example to create it)
+.clasp.json
+.clasprc.json
+node_modules/
+.DS_Store

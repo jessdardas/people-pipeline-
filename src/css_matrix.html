@@ -1,0 +1,174 @@
+<style>
+  /* Main area and the coloured matrix */
+  /* main */
+  main {
+    padding: 26px 40px 70px;
+  }
+  .head {
+    margin-bottom: 18px;
+  }
+  h1 {
+    font-size: 17px;
+    font-weight: 500;
+    margin: 0;
+    letter-spacing: 0;
+  }
+  .meta {
+    color: var(--g2);
+    font-size: 11.5px;
+    margin-top: 3px;
+  }
+  .loading,
+  .empty {
+    padding: 60px 0;
+    text-align: center;
+    color: var(--g2);
+    border: 1px dashed var(--g3);
+  }
+  .hint {
+    color: var(--g2);
+    font-size: 11px;
+    margin: 14px 0 0;
+  }
+
+  /* matrix – full width */
+  .matrix {
+    overflow: auto;
+  }
+  table.grid {
+    border-collapse: collapse;
+    width: 100%;
+  }
+  .grid th,
+  .grid td {
+    padding: 0;
+  }
+  .grid th.col {
+    font-size: 10px;
+    font-weight: 400;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--g1);
+    padding: 8px 4px;
+    text-align: center;
+    border-bottom: 1px solid var(--g3);
+  }
+  .grid th.xl {
+    font-size: 9px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--g2);
+    font-weight: 400;
+    padding: 4px;
+    text-align: center;
+  }
+  .grid th.yl {
+    width: 24px;
+    vertical-align: middle;
+  }
+  .grid th.yl div {
+    writing-mode: vertical-rl;
+    transform: rotate(180deg);
+    font-size: 9px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--g2);
+    font-weight: 400;
+    margin: auto;
+  }
+  .grid th.row {
+    text-align: left;
+    font-weight: 400;
+    font-size: 12px;
+    padding: 0 18px 0 0;
+    white-space: nowrap;
+    border-right: 1px solid var(--g3);
+    height: 56px;
+    width: 170px;
+  }
+  .grid th.row small {
+    display: block;
+    color: var(--g2);
+    font-size: 10.5px;
+  }
+  .grid td.c {
+    border: 2px solid #fff;
+    height: 56px;
+    text-align: center;
+    position: relative;
+  }
+  .grid td.c button {
+    width: 100%;
+    height: 100%;
+    font-size: 15px;
+    font-weight: 400;
+    min-height: 52px;
+  }
+  .grid td.c:hover {
+    outline: 1px solid var(--k);
+    outline-offset: -3px;
+  }
+  .grid td.c.sel {
+    outline: 2px solid var(--k);
+    outline-offset: -4px;
+  }
+  .grid td.zero {
+    color: var(--g3);
+    text-align: center;
+    border: 2px solid #fff;
+    background: #fafafa;
+    font-size: 12px;
+  }
+  .grid td.tot,
+  .grid th.tot {
+    font-size: 11px;
+    color: var(--g2);
+    text-align: center;
+    padding: 0 12px;
+    white-space: nowrap;
+    font-weight: 400;
+    width: 80px;
+  }
+  .grid th.tot {
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    border-bottom: 1px solid var(--g3);
+  }
+  .grid tr.sum th,
+  .grid tr.sum td {
+    border-top: 1px solid var(--g3);
+    height: 38px;
+    font-size: 11px;
+  }
+  .grid tr.sum th {
+    text-align: left;
+    font-weight: 400;
+    padding-right: 16px;
+    border-right: 1px solid var(--g3);
+    color: var(--g1);
+  }
+  .grid tr.sum b {
+    font-weight: 500;
+  }
+  .grid td.c.hl {
+    outline: 3px solid #ffd400 !important;
+    outline-offset: -4px;
+    box-shadow: inset 0 0 16px 3px rgba(255, 212, 0, 0.8);
+    animation: glow 1s ease-in-out 5;
+  }
+  @keyframes glow {
+    0%,
+    100% {
+      outline-color: #ffd400;
+      box-shadow: inset 0 0 16px 3px rgba(255, 212, 0, 0.8);
+    }
+    50% {
+      outline-color: #fff0a0;
+      box-shadow: inset 0 0 4px 1px rgba(255, 212, 0, 0.3);
+    }
+  }
+  tr.hl td {
+    background: #fff8d1 !important;
+  }
+</style>

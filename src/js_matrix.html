@@ -1,0 +1,166 @@
+<script>
+  /* Draws the matrix for the current view */
+  function scopeText() {
+    var u = S.units.length ? S.units.map(unitLabel).join(', ') : 'All service units';
+    var p = S.pipes.length
+      ? S.pipes
+          .slice()
+          .sort()
+          .map(function (k) {
+            return 'Pipeline ' + k;
+          })
+          .join(', ')
+      : 'All pipelines';
+    return u + ' · ' + p;
+  }
+
+  function filterText() {
+    var parts = [];
+    activeF().forEach(function (f) {
+      parts.push(
+        f.t +
+          ': ' +
+          S.F[f.k]
+            .map(function (v) {
+              return f.lab ? f.lab(v) : cap(v);
+            })
+            .join(', ')
+      );
+    });
+    if (S.social !== 'all') parts.push('Social media: ' + (S.social === 'yes' ? 'yes' : 'no'));
+    activeSF().forEach(function (f) {
+      parts.push(f.t + ': ' + S.SF[f.k].join(', '));
+    });
+    return parts.join(' · ');
+  }
+
+  function render() {
+    var main = document.getElementById('main');
+    if (!S.acc.length) return;
+    var def = MAPS[S.view];
+    var data = S.acc.filter(function (a) {
+      return def.filter(a) && pass(a);
+    });
+    var ft = filterText();
+    var h =
+      '<div class="head"><div><h1>' +
+      esc(def.title) +
+      '</h1><div class="meta">' +
+      esc(scopeText()) +
+      (ft ? ' · ' + esc(ft) : '') +
+      '</div></div></div>';
+    if (!data.length) {
+      main.innerHTML = h + '<div class="empty"><p>No accounts for this selection.</p></div>';
+      return;
+    }
+
+    var cells = {},
+      rowT = {},
+      colT = {};
+    data.forEach(function (a) {
+      var p = def.place(a),
+        k = p[0] + '§' + p[1];
+      (cells[k] = cells[k] || []).push(a);
+      rowT[p[0]] = (rowT[p[0]] || 0) + 1;
+      colT[p[1]] = (colT[p[1]] || 0) + 1;
+    });
+    var rows = def.rows.filter(function (x) {
+      return !x.opt || rowT[x.k];
+    });
+    var cols = def.cols.filter(function (x) {
+      return !x.opt || colT[x.k];
+    });
+    var max = 0;
+    Object.keys(cells).forEach(function (k) {
+      max = Math.max(max, cells[k].length);
+    });
+
+    h +=
+      '<div class="matrix"><table class="grid"><thead><tr><th class="yl"></th><th class="xl"></th><th class="xl" colspan="' +
+      cols.length +
+      '">' +
+      esc(def.x) +
+      ' →</th><th class="xl"></th></tr>';
+    h +=
+      '<tr><th class="yl"></th><th class="xl" style="vertical-align:bottom;text-align:left">' +
+      esc(def.y) +
+      ' ↓</th>' +
+      cols
+        .map(function (c) {
+          return '<th class="col">' + esc(c.t) + '</th>';
+        })
+        .join('') +
+      '<th class="tot">Total</th></tr></thead><tbody>';
+    rows.forEach(function (rw, i) {
+      h +=
+        '<tr>' +
+        (i === 0 ? '<th class="yl" rowspan="' + rows.length + '"><div>' + esc(def.y) + '</div></th>' : '') +
+        '<th class="row">' +
+        esc(rw.t) +
+        (rw.s ? '<small>' + esc(rw.s) + '</small>' : '') +
+        '</th>';
+      cols.forEach(function (c) {
+        var list = cells[rw.k + '§' + c.k] || [],
+          n = list.length,
+          key = String(rw.k) + '§' + String(c.k);
+        var hl = S.hl && S.hl.v === S.view && S.hl.key === key;
+        if (!n) {
+          h += '<td class="c zero' + (hl ? ' hl' : '') + '" data-key="' + esc(key) + '">–</td>';
+          return;
+        }
+        var al = max ? 0.06 + 0.84 * (n / max) : 0,
+          dark = al > 0.5;
+        var sel = S.cell && S.cell.key === key;
+        h +=
+          '<td class="c' +
+          (sel ? ' sel' : '') +
+          (hl ? ' hl' : '') +
+          '" data-key="' +
+          esc(key) +
+          '" style="background:rgba(0,0,0,' +
+          al.toFixed(3) +
+          ');color:' +
+          (dark ? '#fff' : '#000') +
+          '"><button onclick="openCell(\'' +
+          esc(String(rw.k)) +
+          "','" +
+          esc(String(c.k)) +
+          '\')" title="Show accounts">' +
+          n.toLocaleString('en-GB') +
+          '</button></td>';
+      });
+      h += '<td class="tot">' + (rowT[rw.k] || 0).toLocaleString('en-GB') + '</td></tr>';
+    });
+    h +=
+      '<tr class="sum"><th class="yl"></th><th>Total</th>' +
+      cols
+        .map(function (c) {
+          return '<td class="tot">' + (colT[c.k] || 0).toLocaleString('en-GB') + '</td>';
+        })
+        .join('') +
+      '<td class="tot"><b style="color:#000">' +
+      data.length.toLocaleString('en-GB') +
+      '</b> acc.</td></tr>';
+    h += '</tbody></table></div>';
+    if (S.cell && !cells[S.cell.key]) S.cell = null;
+    if (S.cell) {
+      var pk = S.cell.key.split('§'),
+        rw0 = rows.filter(function (x) {
+          return String(x.k) === pk[0];
+        })[0],
+        cl0 = cols.filter(function (x) {
+          return String(x.k) === pk[1];
+        })[0];
+      S.list = cells[S.cell.key].slice();
+      S.listMeta =
+        def.title + ' › ' + def.y + ': ' + (rw0 ? rw0.t : pk[0]) + ' × ' + def.x + ': ' + (cl0 ? cl0.t : pk[1]);
+      h += listBlock(S.listMeta, true);
+    } else if (S.view === 4) {
+      S.list = data.slice();
+      S.listMeta = 'All accounts';
+      h += listBlock('All accounts in this selection · click a number above to narrow the list', false);
+    } else h += '<p class="hint">Click a number to see its accounts below.</p>';
+    main.innerHTML = h;
+    if (S.list && (S.cell || S.view === 4)) renderList();
+  }
+</script>

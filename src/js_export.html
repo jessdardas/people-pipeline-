@@ -1,0 +1,173 @@
+<script>
+  /* Excel / PDF export */
+  var XLSX_URL = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
+
+  var JSPDF_URL = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
+
+  var AUTOTABLE_URL =
+    'https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js';
+
+  function expRecord(a) {
+    return {
+      Account: a.name,
+      'Service unit': unitLabel(a.su),
+      Classification: cap(a.cls),
+      Category: cap(a.category),
+      'Sub-category': cap(a.orig),
+      Industry: cap(a.industry),
+      Country: cap(a.country),
+      Owner: cap(a.owner),
+      'Met in': a.metIn,
+      'Phase (latest)': a.phase,
+      Pipeline: a.pipe ? 'Pipeline ' + a.pipe : '',
+      'Pre-P1 projects': a.preN,
+      'Post-P1 projects': a.postN,
+      'Post-P1 value': a.postV,
+      Currency: a.cur,
+      'Last meeting': a.lmDate ? fmtXl(a.lmDate) : 'never',
+      'Last project': a.lpDate ? fmtXl(a.lpDate) : 'never',
+      'Last contact': a.lcDate ? fmtXl(a.lcDate) : 'never',
+      'Last validated on': a.validDate ? fmtXl(a.validDate) : '',
+      'Projects in list': a.projects.length,
+      'Project names': a.projects.map(projName).filter(Boolean).join(', '),
+      'Project phases': a.projPhases.join(', '),
+      'Social media': socialSummary(a),
+      'Social links': a.social
+        .map(function (e) {
+          return cellBy(e.s, e.j, 'pslab_link') || '';
+        })
+        .filter(Boolean)
+        .join(' ')
+    };
+  }
+
+  var PDF_COLS = [
+    'Account',
+    'Service unit',
+    'Classification',
+    'Category',
+    'Country',
+    'Owner',
+    'Phase (latest)',
+    'Pipeline',
+    'Post-P1 projects',
+    'Post-P1 value',
+    'Last meeting',
+    'Projects in list',
+    'Social media'
+  ];
+
+  function exportList(fmt) {
+    doExport(fmt, S._shown || shownList(), S.listMeta);
+  }
+
+  function doExport(fmt, list, title) {
+    if (!list.length) {
+      toast('Nothing to export');
+      return;
+    }
+    var ctx = scopeText() + (filterText() ? ' · ' + filterText() : '');
+    var stamp = new Date().toISOString().slice(0, 10);
+    var fname = ('People Pipeline - ' + title.split(' › ')[0] + ' - ' + stamp).replace(/[\\/:*?"<>|]/g, '');
+    toast('Preparing ' + (fmt === 'pdf' ? 'PDF' : 'Excel') + '…');
+    var p =
+      fmt === 'pdf'
+        ? loadScript(JSPDF_URL).then(function () {
+            return loadScript(AUTOTABLE_URL);
+          })
+        : loadScript(XLSX_URL);
+    p.then(function () {
+      var recs = list.map(expRecord);
+      if (fmt === 'xlsx') {
+        var wb = XLSX.utils.book_new();
+        var ws = XLSX.utils.json_to_sheet(recs);
+        ws['!cols'] = Object.keys(recs[0]).map(function (k) {
+          return { wch: k === 'Account' ? 40 : Math.max(12, k.length + 2) };
+        });
+        XLSX.utils.book_append_sheet(wb, ws, 'Accounts');
+        // projects of these accounts (all columns of the projects sheet)
+        var prows = [];
+        list.forEach(function (a) {
+          a.projects.forEach(function (e) {
+            var s = S.sheets[e.s],
+              o = { Account: a.name };
+            s.cols.forEach(function (c, ci) {
+              if (!/id$/.test(s.hk[ci]))
+                o[ci === nameCol(s) ? 'Project name' : pretty(c.h)] = fmtVal(c.h, cv(e.s, ci, e.j), a).replace(
+                  /^—$/,
+                  ''
+                );
+            });
+            prows.push(o);
+          });
+        });
+        if (prows.length) XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(prows), 'Projects');
+        XLSX.utils.book_append_sheet(
+          wb,
+          XLSX.utils.aoa_to_sheet([
+            ['People Pipeline'],
+            ['View', title],
+            ['Selection', ctx],
+            ['Accounts', list.length],
+            ['Data refreshed', fmtTs(S.source.updated)],
+            ['Exported', fmtTs(Date.now())]
+          ]),
+          'Info'
+        );
+        XLSX.writeFile(wb, fname + '.xlsx');
+      } else {
+        var L = function (s) {
+          return String(s == null ? '' : s)
+            .replace(/[–—]/g, '-')
+            .replace(/›/g, '>')
+            .replace(/[≥]/g, '>=')
+            .replace(/[≤]/g, '<=')
+            .replace(/€/g, 'EUR')
+            .replace(/[^\x00-\xFF]/g, '');
+        };
+        var doc = new window.jspdf.jsPDF({ orientation: 'landscape', unit: 'pt', format: 'a4' });
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(13);
+        doc.text('PEOPLE PIPELINE', 32, 34);
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(9);
+        var lines = doc.splitTextToSize(
+          L(
+            title +
+              '  |  ' +
+              ctx +
+              '  |  ' +
+              list.length +
+              ' accounts  |  data refreshed ' +
+              fmtTs(S.source.updated)
+          ),
+          780
+        );
+        doc.text(lines, 32, 50);
+        doc.autoTable({
+          head: [PDF_COLS],
+          body: recs.map(function (r) {
+            return PDF_COLS.map(function (c) {
+              return L(c === 'Post-P1 value' ? (r[c] ? fmtMoney(r[c], r.Currency) : '') : r[c]);
+            });
+          }),
+          startY: 56 + lines.length * 11,
+          theme: 'grid',
+          margin: { left: 32, right: 32 },
+          styles: {
+            fontSize: 6.5,
+            cellPadding: 2.5,
+            lineColor: [217, 217, 217],
+            lineWidth: 0.4,
+            textColor: [0, 0, 0]
+          },
+          headStyles: { fillColor: [0, 0, 0], textColor: [255, 255, 255], fontStyle: 'bold' },
+          columnStyles: { 0: { cellWidth: 130, fontStyle: 'bold' } }
+        });
+        doc.save(fname + '.pdf');
+      }
+    }).catch(function (e) {
+      toast('Export failed: ' + (e.message || e));
+    });
+  }
+</script>

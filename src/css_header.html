@@ -1,0 +1,494 @@
+<style>
+  /* Top of the page: logo, search, service units, pipelines, tabs, filter panel */
+  /* header */
+  .top {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    padding: 18px 40px 8px;
+    flex-wrap: wrap;
+  }
+  .logo {
+    font-weight: 600;
+    letter-spacing: 0.22em;
+    font-size: 13px;
+    white-space: nowrap;
+  }
+  .logo span {
+    font-weight: 300;
+    letter-spacing: 0.12em;
+    margin-left: 10px;
+    color: var(--g1);
+  }
+  .rf {
+    margin-left: auto;
+    font-size: 11px;
+    color: var(--g2);
+    white-space: nowrap;
+  }
+  .rf b {
+    color: var(--g1);
+    font-weight: 400;
+  }
+  .rf button {
+    margin-left: 6px;
+    color: var(--g2);
+    font-size: 13px;
+  }
+  .rf button:hover {
+    color: var(--k);
+  }
+  .gs {
+    position: relative;
+    width: 260px;
+    max-width: 100%;
+  }
+  .gs input {
+    width: 100%;
+    border: 0;
+    border-bottom: 1px solid var(--g3);
+    padding: 5px 0;
+    outline: none;
+    font-size: 12px;
+    background: transparent;
+  }
+  .gs input:focus {
+    border-bottom-color: var(--k);
+  }
+  .gres {
+    position: absolute;
+    right: 0;
+    width: 420px;
+    max-width: 92vw;
+    top: calc(100% + 6px);
+    background: var(--w);
+    border: 1px solid var(--g3);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+    z-index: 40;
+    max-height: 420px;
+    overflow: auto;
+    display: none;
+  }
+  .gres.open {
+    display: block;
+  }
+  .gres button {
+    display: block;
+    width: 100%;
+    text-align: left;
+    padding: 9px 14px;
+    border-bottom: 1px solid var(--g4);
+  }
+  .gres button:hover,
+  .gres button.act {
+    background: var(--g4);
+  }
+  .gres b {
+    font-weight: 500;
+  }
+  .gres small {
+    display: block;
+    color: var(--g2);
+    font-size: 11px;
+  }
+  .gres .none {
+    padding: 10px 14px;
+    color: var(--g2);
+  }
+
+  /* service units (left) + pipelines (right) */
+  .bar {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 12px 28px;
+    flex-wrap: wrap;
+    padding: 14px 40px 14px;
+  }
+  .units,
+  .pipes {
+    display: flex;
+    align-items: flex-end;
+    gap: 4px 15px;
+    flex-wrap: wrap;
+  }
+  .units button {
+    font-size: 10.5px;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: var(--g2);
+    padding: 2px 0;
+    border-bottom: 1px solid transparent;
+  }
+  .units button:hover,
+  .pipes button:hover {
+    color: var(--k);
+  }
+  .units button.on {
+    color: var(--k);
+    border-bottom-color: var(--k);
+  }
+  .units button.nodata {
+    opacity: 0.45;
+  }
+  .ugrp {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .ugrp .grp {
+    font-size: 10px;
+    letter-spacing: 0.24em;
+    padding: 0 0 2px;
+  }
+  .ugrp .row {
+    display: flex;
+    gap: 12px;
+    border-top: 1px solid var(--g3);
+    padding-top: 3px;
+  }
+  .pipes button {
+    text-align: center;
+    color: var(--g2);
+    padding-bottom: 3px;
+    border-bottom: 1px solid transparent;
+  }
+  .pipes {
+    position: relative;
+    align-items: center;
+    gap: 4px 22px;
+  }
+  .pbtn {
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--k);
+    border: 1px solid var(--g3);
+    border-radius: 14px;
+    padding: 5px 14px;
+  }
+  .pbtn:hover {
+    border-color: var(--k);
+  }
+  .pbtn i {
+    font-style: normal;
+    font-size: 9px;
+    color: var(--g2);
+    margin-left: 4px;
+  }
+  .pmenu {
+    position: absolute;
+    right: 0;
+    top: calc(100% + 8px);
+    z-index: 50;
+    background: var(--w);
+    border: 1px solid var(--g3);
+    box-shadow: 0 14px 40px rgba(0, 0, 0, 0.1);
+    width: 300px;
+    padding: 6px 0;
+  }
+  .pmenu label {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    padding: 8px 14px;
+    cursor: pointer;
+    text-align: left;
+  }
+  .pmenu label:hover {
+    background: var(--g4);
+  }
+  .pmenu input {
+    accent-color: #111;
+    margin: 3px 0 0;
+  }
+  .pmenu b {
+    display: block;
+    font-weight: 500;
+    font-size: 12px;
+  }
+  .pmenu small {
+    display: block;
+    color: var(--g2);
+    font-size: 11px;
+  }
+  .pm-f {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 14px 4px;
+    border-top: 1px solid var(--g4);
+    margin-top: 4px;
+  }
+  .multi {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 10px;
+    color: var(--g2);
+    letter-spacing: 0.06em;
+    margin-left: 6px;
+    cursor: pointer;
+    padding-bottom: 2px;
+  }
+  .multi input {
+    accent-color: #111;
+    margin: 0;
+    width: 12px;
+    height: 12px;
+  }
+  .hpop {
+    position: absolute;
+    z-index: 45;
+    background: var(--w);
+    border: 1px solid var(--g3);
+    box-shadow: 0 14px 40px rgba(0, 0, 0, 0.1);
+    width: 280px;
+    max-height: 420px;
+    display: none;
+    flex-direction: column;
+  }
+  .hpop.open {
+    display: flex;
+  }
+  .hp-s {
+    display: flex;
+    flex-direction: column;
+    padding: 6px 0;
+    border-bottom: 1px solid var(--g4);
+  }
+  .hp-s button {
+    text-align: left;
+    padding: 6px 14px;
+    font-size: 12px;
+  }
+  .hp-s button:hover {
+    background: var(--g4);
+  }
+  .hpop .fp-list {
+    max-height: 220px;
+  }
+  .hpop .fp-f {
+    grid-column: auto;
+  }
+  .fdot {
+    font-style: normal;
+    font-size: 8px;
+    vertical-align: middle;
+  }
+
+  /* maps + all accounts + filters */
+  .nav {
+    display: flex;
+    align-items: center;
+    gap: 28px;
+    padding: 0 40px;
+    border-top: 1px solid var(--g4);
+    border-bottom: 1px solid var(--g3);
+    flex-wrap: wrap;
+  }
+  .tabs {
+    display: flex;
+    gap: 26px;
+    flex-wrap: wrap;
+  }
+  .tabs button {
+    padding: 13px 0 11px;
+    font-size: 12.5px;
+    color: var(--g2);
+    border-bottom: 1px solid transparent;
+    margin-bottom: -1px;
+  }
+  .tabs button b {
+    font-weight: 400;
+    margin-right: 6px;
+    font-size: 10px;
+  }
+  .tabs button.on {
+    color: var(--k);
+    border-bottom-color: var(--k);
+  }
+  .tabs button.far {
+    margin-left: 10px;
+    padding-left: 26px;
+    border-left: 1px solid var(--g3);
+    border-bottom-color: transparent;
+  }
+  .tabs button.far.on {
+    border-bottom-color: var(--k);
+  }
+  .fwrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .fb {
+    border: 1px solid var(--g3);
+    padding: 4px 12px;
+    font-size: 12px;
+    border-radius: 14px;
+    color: var(--g1);
+  }
+  .fb:hover {
+    border-color: var(--k);
+    color: var(--k);
+  }
+  .fb.on {
+    border-color: var(--k);
+    color: var(--k);
+  }
+  .fb span {
+    display: inline-block;
+    min-width: 16px;
+    height: 16px;
+    line-height: 16px;
+    border-radius: 8px;
+    background: var(--k);
+    color: var(--w);
+    font-size: 10px;
+    text-align: center;
+    margin-left: 4px;
+  }
+  .fclear {
+    margin-left: 4px;
+  }
+  .fclear,
+  .lnk {
+    font-size: 11px;
+    color: var(--g2);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+  .fclear:hover,
+  .lnk:hover {
+    color: var(--k);
+  }
+  .fpanel {
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 0;
+    z-index: 60;
+    background: var(--w);
+    border: 1px solid var(--g3);
+    box-shadow: 0 14px 40px rgba(0, 0, 0, 0.1);
+    width: 580px;
+    max-width: 92vw;
+    height: 480px;
+    display: none;
+    grid-template-columns: 190px 1fr;
+    grid-template-rows: 1fr auto;
+  }
+  .fpanel.open {
+    display: grid;
+  }
+  .fp-l {
+    overflow: auto;
+    border-right: 1px solid var(--g4);
+    padding: 8px 0;
+  }
+  .fp-l button {
+    display: flex;
+    width: 100%;
+    text-align: left;
+    padding: 6px 16px;
+    font-size: 12px;
+    color: var(--g1);
+  }
+  .fp-l button.sub {
+    padding-left: 28px;
+    font-size: 11.5px;
+  }
+  .fp-l button:hover {
+    background: var(--g4);
+  }
+  .fp-l button.on {
+    background: var(--g4);
+    color: var(--k);
+  }
+  .fp-l button span {
+    margin-left: auto;
+    font-size: 10px;
+    color: var(--w);
+    background: var(--k);
+    border-radius: 8px;
+    min-width: 16px;
+    height: 16px;
+    line-height: 16px;
+    text-align: center;
+  }
+  .fp-r {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+  }
+  .fp-t {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    padding: 12px 14px 4px;
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--g1);
+  }
+  .fp-t .lnk {
+    letter-spacing: 0;
+    text-transform: none;
+  }
+  .fp-q {
+    margin: 6px 14px;
+    border: 0;
+    border-bottom: 1px solid var(--g3);
+    padding: 5px 0;
+    font-size: 12px;
+    outline: none;
+  }
+  .fp-q:focus {
+    border-bottom-color: var(--k);
+  }
+  .fp-list {
+    overflow: auto;
+    flex: 1;
+    padding: 4px 0;
+  }
+  .fp-list label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 5px 14px;
+    cursor: pointer;
+    font-size: 12px;
+  }
+  .fp-list label:hover {
+    background: var(--g4);
+  }
+  .fp-list label span {
+    flex: 1;
+  }
+  .fp-list label small {
+    color: var(--g2);
+    font-size: 11px;
+  }
+  .fp-list input {
+    accent-color: #111;
+    margin: 0;
+  }
+  .fp-f {
+    grid-column: 1/3;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 10px 14px;
+    border-top: 1px solid var(--g4);
+  }
+  .btn {
+    border: 1px solid var(--k);
+    padding: 5px 14px;
+    font-size: 11px;
+    letter-spacing: 0.06em;
+  }
+  .btn:hover {
+    background: var(--k);
+    color: var(--w);
+  }
+</style>

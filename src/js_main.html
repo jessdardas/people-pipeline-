@@ -1,0 +1,58 @@
+<script>
+  /* Loading, refresh and auto refresh — starts the app (keep this file last) */
+  function load(silent, msg) {
+    S.busy = true;
+    renderRefresh();
+    var keep = { detail: S.detail, cellKey: S.cell && S.cell.key };
+    S.cell = null;
+    return api('getData', [])
+      .then(function (d) {
+        build(d);
+        S.busy = false;
+        renderAll();
+        if (keep.cellKey && S.view !== 4) {
+          S.cell = { key: keep.cellKey };
+          render();
+        }
+        if (keep.detail && S.byId[keep.detail]) openDetail(S.byId[keep.detail].i);
+        if (msg) toast(msg + ' — data from ' + fmtTs(S.source.updated));
+      })
+      .catch(function (e) {
+        S.busy = false;
+        renderRefresh();
+        if (!silent || !S.acc.length)
+          document.getElementById('main').innerHTML =
+            '<div class="empty">Error: ' + esc(e.message || e) + '</div>';
+        else toast('Refresh failed: ' + (e.message || e));
+      });
+  }
+
+  function refresh() {
+    if (S.busy) return;
+    load(true, 'Refreshed');
+  }
+  // auto refresh: check the Drive file every 10 minutes, reload when it changed – and at least every hour
+  setInterval(
+    function () {
+      if (S.busy) return;
+      api('getStamp', [])
+        .then(function (st) {
+          S.checked = Date.now();
+          if (st.updated !== S.source.updated || Date.now() - (S.source.loaded || 0) > 3600 * 1000)
+            load(true, 'Data refreshed automatically');
+          else renderRefresh();
+        })
+        .catch(function () {});
+    },
+    10 * 60 * 1000
+  );
+
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') {
+      closePanel();
+      closeDrawer();
+    }
+  });
+
+  load(false);
+</script>

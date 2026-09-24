@@ -1,0 +1,190 @@
+<script>
+  /* Refresh info, service unit buttons, pipeline menu, tabs */
+  function renderRefresh() {
+    var s = S.source;
+    document.getElementById('rf').innerHTML = s.updated
+      ? '<span title="' +
+        esc(
+          (s.name || '') +
+            ' · checked ' +
+            new Date(S.checked).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }) +
+            ' · auto-refresh every hour'
+        ) +
+        '">Last refreshed <b>' +
+        esc(fmtTs(s.updated)) +
+        '</b></span><button onclick="refresh()" title="Refresh now">' +
+        (S.busy ? '…' : '↻') +
+        '</button>'
+      : S.busy
+        ? 'Loading…'
+        : '';
+  }
+
+  function renderUnits() {
+    var inGrp = {};
+    GROUPS.forEach(function (g) {
+      g.units.forEach(function (u) {
+        inGrp[u] = 1;
+      });
+    });
+    var ub = function (u) {
+      return (
+        '<button class="' +
+        (S.units.indexOf(u) >= 0 ? 'on ' : '') +
+        (S.have[u] ? '' : 'nodata') +
+        '" onclick="setUnit(\'' +
+        esc(u) +
+        '\')" title="' +
+        (S.have[u] || 0) +
+        ' accounts">' +
+        esc(unitLabel(u)) +
+        '</button>'
+      );
+    };
+    var h = '<button class="' + (S.units.length ? '' : 'on') + '" onclick="setUnit(null)">All</button>';
+    GROUPS.forEach(function (g, gi) {
+      var on = g.units.every(function (x) {
+        return S.units.indexOf(x) >= 0;
+      });
+      h +=
+        '<span class="ugrp"><button class="grp ' +
+        (on ? 'on' : '') +
+        '" onclick="setGroup(' +
+        gi +
+        ')">' +
+        esc(g.t) +
+        '</button><span class="row">' +
+        g.units.map(ub).join('') +
+        '</span></span>';
+    });
+    S.allUnits.forEach(function (u) {
+      if (!inGrp[u]) h += ub(u);
+    });
+    h +=
+      '<label class="multi" title="Tick to select several service units at once"><input type="checkbox" ' +
+      (S.multiUnit ? 'checked' : '') +
+      ' onchange="toggleMulti(this.checked)">multiple</label>';
+    document.getElementById('units').innerHTML = h;
+
+    var lbl = S.pipes.length
+      ? S.pipes
+          .slice()
+          .sort()
+          .map(function (k) {
+            return 'Pipeline ' + k;
+          })
+          .join(' + ')
+      : 'All pipelines';
+    var p = '<button class="pbtn" onclick="S.pm=!S.pm;renderUnits()">' + esc(lbl) + ' <i>▾</i></button>';
+    if (S.pm)
+      p +=
+        '<div class="pmenu">' +
+        PIPES.map(function (x) {
+          return (
+            '<label><input type="checkbox" ' +
+            (S.pipes.indexOf(x.k) >= 0 ? 'checked' : '') +
+            ' onchange="setPipe(' +
+            x.k +
+            ')"><span><b>' +
+            esc(x.t) +
+            '</b><small>' +
+            esc(x.s) +
+            '</small></span></label>'
+          );
+        }).join('') +
+        '<div class="pm-f"><button class="lnk" onclick="setPipe(null)">All pipelines</button><button class="lnk" onclick="S.pm=false;renderUnits()">Close</button></div></div>';
+    document.getElementById('pipes').innerHTML = p;
+
+    document.getElementById('tabs').innerHTML =
+      [1, 2, 3]
+        .map(function (i) {
+          return (
+            '<button class="' +
+            (S.view === i ? 'on' : '') +
+            '" onclick="setView(' +
+            i +
+            ')"><b>0' +
+            i +
+            '</b>' +
+            MAPS[i].title +
+            '</button>'
+          );
+        })
+        .join('') +
+      '<button class="far ' +
+      (S.view === 4 ? 'on' : '') +
+      '" onclick="setView(4)">All accounts</button>';
+  }
+
+  function setUnit(u) {
+    if (u === null) S.units = [];
+    else if (S.multiUnit) {
+      var i = S.units.indexOf(u);
+      if (i >= 0) S.units.splice(i, 1);
+      else S.units.push(u);
+    } else S.units = S.units.length === 1 && S.units[0] === u ? [] : [u];
+    changed();
+  }
+
+  function setGroup(gi) {
+    var g = GROUPS[gi],
+      on = g.units.every(function (x) {
+        return S.units.indexOf(x) >= 0;
+      });
+    if (on)
+      S.units = S.units.filter(function (x) {
+        return g.units.indexOf(x) < 0;
+      });
+    else if (S.multiUnit)
+      g.units.forEach(function (x) {
+        if (S.units.indexOf(x) < 0) S.units.push(x);
+      });
+    else S.units = g.units.slice();
+    changed();
+  }
+
+  function toggleMulti(on) {
+    S.multiUnit = on;
+    var g = GROUPS[0].units,
+      isGrp =
+        S.units.length === g.length &&
+        g.every(function (x) {
+          return S.units.indexOf(x) >= 0;
+        });
+    if (!on && S.units.length > 1 && !isGrp) {
+      S.units = [S.units[0]];
+      changed();
+    } else renderUnits();
+  }
+
+  function setPipe(k) {
+    if (k === null) S.pipes = [];
+    else {
+      var i = S.pipes.indexOf(k);
+      if (i >= 0) S.pipes.splice(i, 1);
+      else S.pipes.push(k);
+    }
+    changed();
+  }
+
+  function setView(i) {
+    S.view = i;
+    changed();
+  }
+
+  function changed() {
+    S.hl = null;
+    S.cell = null;
+    S.g = newGrid();
+    closePanel();
+    closeDrawer();
+    renderAll();
+  }
+
+  function renderAll() {
+    renderRefresh();
+    renderUnits();
+    renderFilters();
+    render();
+  }
+</script>
