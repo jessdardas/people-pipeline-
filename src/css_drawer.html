@@ -1,0 +1,123 @@
+<style>
+  /* Account details side panel, toast, mobile layout */
+  /* account details – side panel */
+  .dim {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.12);
+    display: none;
+    z-index: 20;
+  }
+  .dim.open {
+    display: block;
+  }
+  .drawer {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: min(640px, 100vw);
+    background: var(--w);
+    border-left: 1px solid var(--g3);
+    box-shadow: -10px 0 40px rgba(0, 0, 0, 0.06);
+    transform: translateX(100%);
+    transition: transform 0.2s;
+    z-index: 30;
+    display: flex;
+    flex-direction: column;
+  }
+  .drawer.open {
+    transform: none;
+  }
+  .dh {
+    padding: 22px 28px 14px;
+    border-bottom: 1px solid var(--g4);
+  }
+  .dh h2 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 500;
+    padding-right: 30px;
+  }
+  .x {
+    position: absolute;
+    top: 16px;
+    right: 22px;
+    font-size: 22px;
+    line-height: 1;
+    color: var(--g2);
+  }
+  .x:hover {
+    color: var(--k);
+  }
+  .det {
+    overflow: auto;
+    flex: 1;
+    padding: 16px 28px 40px;
+  }
+  .det h3 {
+    margin: 24px 0 8px;
+  }
+  .kv {
+    display: grid;
+    grid-template-columns: 150px 1fr;
+    border-top: 1px solid var(--g4);
+  }
+  .kv div {
+    padding: 6px 0;
+    border-bottom: 1px solid var(--g4);
+    font-size: 12px;
+  }
+  .kv div:nth-child(odd) {
+    color: var(--g2);
+  }
+  .det table.tb td {
+    max-width: 220px;
+  }
+  .det table.tb tbody tr {
+    cursor: default;
+  }
+  .loc {
+    background: var(--g4);
+    padding: 9px 12px;
+    font-size: 12px;
+    margin: 8px 0 4px;
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    align-items: center;
+  }
+  .loc button {
+    text-decoration: underline;
+    font-size: 12px;
+    white-space: nowrap;
+  }
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--k);
+    color: var(--w);
+    padding: 9px 18px;
+    font-size: 12px;
+    display: none;
+    z-index: 80;
+    max-width: 90vw;
+  }
+  @media (max-width: 760px) {
+    .top,
+    .bar,
+    .nav,
+    main {
+      padding-left: 16px;
+      padding-right: 16px;
+    }
+    .rf {
+      margin-left: 0;
+    }
+    .fpanel {
+      grid-template-columns: 130px 1fr;
+    }
+  }
+</style>

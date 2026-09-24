@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <meta charset="utf-8">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- Styles: each file is one part of the page -->
+  <?!= include('css_base'); ?>
+  <?!= include('css_header'); ?>
+  <?!= include('css_matrix'); ?>
+  <?!= include('css_table'); ?>
+  <?!= include('css_drawer'); ?>
+</head>
+<body>
+  <div class="top">
+    <div class="logo">PSLAB<span>PEOPLE PIPELINE</span></div>
+    <div class="rf" id="rf"></div>
+    <div class="gs">
+      <input id="gq" placeholder="Search an account…" autocomplete="off" oninput="gSearch()" onkeydown="gKey(event)" onfocus="gSearch()">
+      <div class="gres" id="gres"></div>
+    </div>
+  </div>
+  <div class="bar"><div class="units" id="units"></div><div class="pipes" id="pipes"></div></div>
+  <div class="nav"><div class="tabs" id="tabs"></div><div class="fwrap"><div id="fbtn"></div><div class="fpanel" id="fpanel"></div></div></div>
+  <main id="main"><div class="loading">Reading the source file…</div></main>
+
+  <div class="dim" id="dim" onclick="closeDrawer()"></div>
+  <aside class="drawer" id="drawer">
+    <div class="dh" style="position:relative">
+      <button class="x" onclick="closeDrawer()">×</button>
+      <h2 id="aTitle"></h2>
+      <div class="meta" id="aMeta"></div>
+    </div>
+    <div class="det" id="aBody"></div>
+  </aside>
+  <div class="toast" id="toast"></div>
+
+  <!-- Scripts: the order matters, js_main must stay last (it starts the app) -->
+  <?!= include('js_config'); ?>
+  <?!= include('js_helpers'); ?>
+  <?!= include('js_data'); ?>
+  <?!= include('js_filters'); ?>
+  <?!= include('js_maps'); ?>
+  <?!= include('js_topbar'); ?>
+  <?!= include('js_filter_panel'); ?>
+  <?!= include('js_matrix'); ?>
+  <?!= include('js_table'); ?>
+  <?!= include('js_details'); ?>
+  <?!= include('js_search'); ?>
+  <?!= include('js_export'); ?>
+  <?!= include('js_main'); ?>
+</body>
+</html>
